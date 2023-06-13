@@ -5,8 +5,7 @@
  * be relative to the file they were originally found in
  */
 
-import { dirname, resolve } from "https://deno.land/std@0.191.0/path/mod.ts";
-import { joinPath, parseYaml } from '../deps.ts';
+import { dirname, joinPath, parseYaml, resolvePath } from '../deps.ts';
 
 export class KubeConfig {
   constructor(
@@ -342,7 +341,7 @@ function resolveKubeConfigPaths(dir: string, data: RawKubeConfig): void {
   for (const { cluster } of clusters) {
     const ca = cluster["certificate-authority"];
     if (ca) {
-      cluster["certificate-authority"] = resolve(dir, ca);
+      cluster["certificate-authority"] = resolvePath(dir, ca);
     }
   }
   for (const { user } of users) {
@@ -350,13 +349,13 @@ function resolveKubeConfigPaths(dir: string, data: RawKubeConfig): void {
     const cert = user["client-certificate"];
     const token = user.tokenFile;
     if (token) {
-      user.tokenFile = resolve(dir, token);
+      user.tokenFile = resolvePath(dir, token);
     }
     if (key) {
-      user["client-key"] = resolve(dir, key);
+      user["client-key"] = resolvePath(dir, key);
     }
     if (cert) {
-      user["client-certificate"] = resolve(dir, cert);
+      user["client-certificate"] = resolvePath(dir, cert);
     }
   }
 }
