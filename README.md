@@ -52,6 +52,20 @@ Check out `lib/contract.ts` to see the type/API contract.
 
 ## Changelog
 
+
+* `v0.7.0` on `2023-08-13`:
+    Port `KubectlRawRestClient` over to newer `Deno.Command()` API.
+    Support patching subresources & opening PodExec tunnels in `KubectlRawRestClient`.
+    Obey `abortSignal` in more places (WebSocket tunnels, `kubectl` invocations).
+    New API for swapping out the `KubeConfigRestClient` when auto-detecting a client.
+
+    * `v0.7.1` on `2023-09-24`: Update std dependencies to `/std@0.202.0`
+    * `v0.7.2` on `2023-12-29`: Fix `WebsocketTunnel` for Deno v1.38 change
+
+* `v0.6.0` on `2023-08-08`:
+    Introduce an API for opening Kubernetes tunnels, useful for `PodExec` and others.
+    Add an initial WebSocket-based tunnel client (in beta).
+
 * `v0.5.2` on `2023-06-12`:
     Remove IP address restriction. Deno v1.33.4 can now access IP addresses with TLS.
     This is important when accessing GKE clusters or similar configurations.

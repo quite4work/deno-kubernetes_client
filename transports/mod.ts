@@ -39,19 +39,36 @@ export class ClientProviderChain {
   }
 }
 
-export const DefaultClientProvider
-  = new ClientProviderChain([
-    ['InCluster', () => KubeConfigRestClient.forInCluster()],
-    ['KubeConfig', () => KubeConfigRestClient.readKubeConfig()],
-    ['KubectlProxy', () => KubeConfigRestClient.forKubectlProxy()],
-    ['KubectlRaw', async () => new KubectlRawRestClient()],
+/** Constructs the typical list of Kubernetes API clients,
+ * using an alternative client for connecting to KubeConfig contexts.
+ * The Kubectl client is unaffected by this. */
+export function makeClientProviderChain(restClientFactory: KubeConfigClientFactory) {
+  return new ClientProviderChain([
+    ['InCluster', () => restClientFactory.forInCluster()],
+    ['KubeConfig', () => restClientFactory.readKubeConfig()],
+    ['KubectlProxy', () => restClientFactory.forKubectlProxy()],
+    ['KubectlRaw', () => Promise.resolve(new KubectlRawRestClient())],
   ]);
+}
+
+/** A subset of KubeConfigRestClient's static interface. */
+interface KubeConfigClientFactory {
+  forInCluster(): Promise<RestClient>;
+  forKubectlProxy(): Promise<RestClient>;
+  readKubeConfig(
+    path?: string,
+    contextName?: string,
+  ): Promise<RestClient>;
+}
+
+export const DefaultClientProvider = makeClientProviderChain(KubeConfigRestClient);
 
 /**
- * Trial-and-error approach for automatically deciding how to talk to Kubernetes.
- * You'll still need to set the correct permissions for where you are running.
- * You can probably be more specific and secure with app-specific Deno.args flags.
+ * Automatic trial-and-error approach for deciding how to talk to Kubernetes.
+ * Influenced by Deno's current permissions and Deno may prompt for more permissions.
+ * Will emit a list of problems if no usable clients are found.
+ * You'll likely want to set the correct Deno permissions for your installation.
  */
 export async function autoDetectClient(): Promise<RestClient> {
-  return DefaultClientProvider.getClient();
+  return await DefaultClientProvider.getClient();
 }
